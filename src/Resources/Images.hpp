@@ -1,29 +1,19 @@
-﻿#pragma once
+﻿// This file was generated automatically and does not require manual editing.
+// If you need a conversion tool, here is a link: https://github.com/IgorTimofeev/YOBAResourceConverter
 
-#include <string>
+#pragma once
 
-#include <YOBA/Core.hpp>
-#include <SFML/Graphics.hpp>
+#include "Resources/Images/MenuIconDevImage.hpp"
+#include "Resources/Images/MenuIconMFDImage.hpp"
+#include "Resources/Images/MenuIconMFDAutopilotImage.hpp"
+#include "Resources/Images/MenuIconPersonalizationImage.hpp"
 
 namespace pizda {
-	using namespace YOBA;
-
-	class TextureSpriteAndImage {
-		public:
-			void setup(const std::string_view path);
-
-			sf::Texture texture {};
-			sf::Sprite sprite { texture };
-			SFMLImage image {};
-	};
-
 	class Images {
 		public:
-			static TextureSpriteAndImage menuIconDev;
-			static TextureSpriteAndImage menuIconMFD;
-			static TextureSpriteAndImage menuIconMFDAutopilot;
-			static TextureSpriteAndImage menuIconPersonalization;
-
-			static void setup();
+			constexpr static MenuIconDevImage menuIconDev {};
+			constexpr static MenuIconMFDImage menuIconMFD {};
+			constexpr static MenuIconMFDAutopilotImage menuIconMFDAutopilot {};
+			constexpr static MenuIconPersonalizationImage menuIconPersonalization {};
 	};
 }

@@ -18,34 +18,13 @@ int main() {
 	using namespace YOBA;
 	using namespace pizda;
 
-	// -------------------------------- SFML window --------------------------------
-
-	// Creating window that will simulate 240x320 display, which is widely used among Arduino kids
-	// To avoid eye bleeding, let's double the rendering scale
-	constexpr static Size virtualScreenResolution { 240, 320 };
-	constexpr static float virtualScreenRenderingScale = 2;
-
-	sf::RenderWindow SFWindow {
-		sf::VideoMode({
-			static_cast<uint32_t>(static_cast<float>(virtualScreenResolution.getWidth()) * virtualScreenRenderingScale),
-			static_cast<uint32_t>(static_cast<float>(virtualScreenResolution.getHeight()) * virtualScreenRenderingScale)
-		}),
-		"YOBA | Desktop demo",
-		sf::Style::None | sf::Style::Titlebar | sf::Style::Close,
-		sf::State::Windowed
-	};
-
-	// Loading one of the sexiest pixelated fonts ever created
-	sf::Font SFFont { "Resources/Fonts/unscii-16.otf" };
-	SFFont.setSmooth(false);
-
 	// -------------------------------- Renderer & rendering target --------------------------------
 
 	// Creating rendering target that encapsulates SFML sprite - it will be used by YOBA for flushing pixel data
 	// The sprite itself can be rendered later via window.draw()
 	SFMLRenderingTarget renderingTarget {};
-	renderingTarget.setup(virtualScreenResolution);
-	renderingTarget.setRenderingScale(virtualScreenRenderingScale);
+	renderingTarget.setup({ 240, 320 });
+	renderingTarget.setRenderingScale(2.0f);
 
 	// Creating straightforward renderer that doesn't care about CPU/RAM bearing (like RGB565 or Indexed does)
 	SFMLRenderer renderer {};
@@ -54,7 +33,6 @@ int main() {
 	// -------------------------------- UI components  --------------------------------
 
 	Theme::setup();
-	Images::setup();
 
 	Application application {};
 	application.setRenderer(&renderer);
@@ -203,10 +181,10 @@ int main() {
 	};
 
 	ImageAndBadge imagesAndBadges[4] {
-		{ &Images::menuIconDev.image, "1"},
-		{ &Images::menuIconMFD.image, "2"},
-		{ &Images::menuIconMFDAutopilot.image, "3"},
-		{ &Images::menuIconPersonalization.image, "4"},
+		{ &Images::menuIconDev, "1"},
+		{ &Images::menuIconMFD, "2"},
+		{ &Images::menuIconMFDAutopilot, "3"},
+		{ &Images::menuIconPersonalization, "4"},
 	};
 
 	for (auto& imageAndBadge : imagesAndBadges)
@@ -560,15 +538,15 @@ int main() {
 			void open() {
 				Theme::openDialog(this);
 
-				slideAnimation.setFrom({ virtualScreenResolution.getWidth(), 0 });
-				slideAnimation.setTo({ virtualScreenResolution.getWidth(), Size::computed });
+				slideAnimation.setFrom({ 240, 0 });
+				slideAnimation.setTo({ 240, Size::computed });
 				slideAnimation.setOnStateChanged(nullptr);
 				slideAnimation.start();
 			}
 
 			void close(const std::function<void()>& onClose) {
-				slideAnimation.setFrom({ virtualScreenResolution.getWidth(), Size::computed });
-				slideAnimation.setTo({ virtualScreenResolution.getWidth(), 0 });
+				slideAnimation.setFrom({ 240, Size::computed });
+				slideAnimation.setTo({ 240, 0 });
 
 				slideAnimation.setOnStateChanged([this, onClose](const AnimationState state) {
 					if (state != AnimationState::completed)
@@ -594,7 +572,7 @@ int main() {
 		const auto dialog = new ConfirmationDialog {};
 
 		dialog->setup(
-			&Images::menuIconMFD.image,
+			&Images::menuIconMFD,
 			"Retard alert",
 			"Are you sure want to delete QueenSnakePrn.mov? This action is permanent.",
 			[dialog, &progressAnimation](const bool confirmed) {
@@ -637,7 +615,22 @@ int main() {
 
 	rows += &scaleButton;
 
-	// -------------------------------- Main loop with SFML event handling --------------------------------
+	// -------------------------------- SFML window & main loop --------------------------------
+
+	// Creating window that will be used for rendering pixel data
+	sf::RenderWindow SFWindow {
+		sf::VideoMode({
+			static_cast<uint32_t>(static_cast<float>(renderingTarget.getSize().getWidth()) * renderingTarget.getRenderingScale()),
+			static_cast<uint32_t>(static_cast<float>(renderingTarget.getSize().getHeight()) * renderingTarget.getRenderingScale())
+		}),
+		"YOBA | Desktop demo",
+		sf::Style::None | sf::Style::Titlebar | sf::Style::Close,
+		sf::State::Windowed
+	};
+
+	// Loading one of the sexiest pixelated fonts ever created
+	sf::Font FPSFont { "Resources/Fonts/unscii-16.otf" };
+	FPSFont.setSmooth(false);
 
 	while (SFWindow.isOpen()) {
 		// Polling SFML events
@@ -646,8 +639,8 @@ int main() {
 				SFWindow.close();
 			}
 			else {
-				// Translating SFML events to YOBA events if they have similar nature (pointer, drag, scroll, etc.)
-				SFMLEvents::handleMouse(event, &application, renderingTarget.getRenderingScale());
+				// Translating SFML events into YOBA events if they have similar nature (pointer, drag, scroll, etc.)
+				SFMLEvents::translate(event, &application, renderingTarget.getRenderingScale());
 			}
 		}
 
@@ -657,25 +650,23 @@ int main() {
 		// Because of this, the FPS count will become god-tier. So let's force YOBA to perform full update on every
 		// cycle to measure real performance
 		application.invalidate();
-
 		// Handling enqueued events, polling HIDs, playing animations, calling onTick(), etc.
 		application.tick();
-
 		// Computing size of UI elements & arranging them in the screen space
 		application.updateLayout();
-
-		// Rendering UI on assigned rendering target (SFML window in this case)
+		// Rendering UI on assigned rendering target (SFML sprite in this case)
 		application.render();
 
 		const auto FPSMeasurementDurationUs =
 			std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - FPSMeasurementStart)
 			.count();
 
-		// Rendering FPS counter on SFML window
+		// Rendering sprite that has been prepared by YOBA
 		SFWindow.draw(renderingTarget.getSprite());
 
+		// Rendering FPS counter on top
 		sf::Text FPSText {
-			SFFont,
+			FPSFont,
 			std::format("{} FPS", FPSMeasurementDurationUs == 0 ? 0 : 1'000'000 / FPSMeasurementDurationUs),
 			16
 		};
