@@ -560,15 +560,15 @@ int main() {
 			void open() {
 				Theme::openDialog(this);
 
-				slideAnimation.setFrom({ Size::computed, 0 });
-				slideAnimation.setTo({ Size::computed, Size::computed });
+				slideAnimation.setFrom({ virtualScreenResolution.getWidth(), 0 });
+				slideAnimation.setTo({ virtualScreenResolution.getWidth(), Size::computed });
 				slideAnimation.setOnStateChanged(nullptr);
 				slideAnimation.start();
 			}
 
 			void close(const std::function<void()>& onClose) {
-				slideAnimation.setFrom({ Size::computed, Size::computed });
-				slideAnimation.setTo({ Size::computed, 0 });
+				slideAnimation.setFrom({ virtualScreenResolution.getWidth(), Size::computed });
+				slideAnimation.setTo({ virtualScreenResolution.getWidth(), 0 });
 
 				slideAnimation.setOnStateChanged([this, onClose](const AnimationState state) {
 					if (state != AnimationState::completed)
