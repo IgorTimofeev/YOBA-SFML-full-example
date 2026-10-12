@@ -36,8 +36,6 @@ namespace pizda {
 	ARGBColor Theme::sky1 {};
 	ARGBColor Theme::sky2 {};
 
-	KeyboardOverlay* Theme::keyboardOverlay = nullptr;
-
 	void Theme::setup() {
 		setColorScheme(true);
 	}
@@ -319,6 +317,8 @@ namespace pizda {
 		textField->setFont(&fontNormal);
 
 		textField->setOnInputStateChanged([textField] {
+			static KeyboardOverlay* keyboardOverlay = nullptr;
+
 			// Input started
 			if (textField->getInputState()) {
 				// Creating new keyboard overlay if none

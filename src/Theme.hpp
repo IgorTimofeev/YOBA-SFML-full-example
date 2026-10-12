@@ -75,8 +75,6 @@ namespace pizda {
 			constexpr static uint16_t verticalGap = 9;
 			constexpr static uint16_t horizontalGap = 7;
 
-			static KeyboardOverlay* keyboardOverlay;
-
 			static void setup();
 			static void setColorScheme(bool dark);
 			static void applyPrimary(TextButton* TextButton);
