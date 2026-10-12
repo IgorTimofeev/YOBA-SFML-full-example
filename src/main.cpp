@@ -62,6 +62,38 @@ int main() {
 		rows += &divider;
 	};
 
+	// -------------------------------- Text fields --------------------------------
+
+	Divider textFieldsDivider {};
+	addPageDivider(textFieldsDivider);
+
+	TextView textFieldsTitle {};
+	addPageTitle("Text fields", textFieldsTitle);
+
+	// Regular
+	TextField regularTextField {};
+	Theme::apply(&regularTextField);
+	regularTextField.setPlaceholder("Abc");
+
+	Titler regularTextFieldTitle { "Regular", &regularTextField };
+	Theme::apply(&regularTextFieldTitle);
+	rows += &regularTextFieldTitle;
+
+	// Numeric
+	TextField numericTextField {};
+	Theme::apply(&numericTextField);
+	numericTextField.setPlaceholder("123");
+
+	numericTextField.setTextParsingOptions(
+		TextParsingOptions::number
+		| TextParsingOptions::sign
+		| TextParsingOptions::decimalPoint
+	);
+
+	Titler numericTextFieldTitle { "Numeric", &numericTextField };
+	Theme::apply(&numericTextFieldTitle);
+	rows += &numericTextFieldTitle;
+
 	// -------------------------------- OWLCAT, GIVE ME $$$ --------------------------------
 
 	TextView heresyTitle {};
@@ -395,32 +427,6 @@ int main() {
 	// Selecting first item in list
 	selector.setSelectedIndex(0);
 
-	// -------------------------------- Text fields --------------------------------
-
-	Divider textFieldsDivider {};
-	addPageDivider(textFieldsDivider);
-
-	TextView textFieldsTitle {};
-	addPageTitle("Text fields", textFieldsTitle);
-
-	// Regular
-	TextField regularTextField {};
-	Theme::apply(&regularTextField);
-	regularTextField.setPlaceholder("Abc");
-
-	Titler regularTextFieldTitle { "Regular", &regularTextField };
-	Theme::apply(&regularTextFieldTitle);
-	rows += &regularTextFieldTitle;
-
-	// Numeric
-	TextField numericTextField {};
-	Theme::apply(&numericTextField);
-	numericTextField.setPlaceholder("123");
-	numericTextField.setKeyboardLayoutOptions(KeyboardLayoutOptions::numeric | KeyboardLayoutOptions::allowSigned);
-
-	Titler numericTextFieldTitle { "Numeric", &numericTextField };
-	Theme::apply(&numericTextFieldTitle);
-	rows += &numericTextFieldTitle;
 
 	// -------------------------------- Animations --------------------------------
 

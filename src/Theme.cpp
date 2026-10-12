@@ -36,46 +36,10 @@ namespace pizda {
 	ARGBColor Theme::sky1 {};
 	ARGBColor Theme::sky2 {};
 
+	KeyboardOverlay* Theme::keyboardOverlay = nullptr;
+
 	void Theme::setup() {
 		setColorScheme(true);
-
-		// Keyboard
-		KeyboardController::setOnShow([](Keyboard* keyboard) {
-			keyboard->setFont(&fontNormal);
-			keyboard->setBackgroundColor(&bg1);
-
-			keyboard->setKeyHeight(24);
-			keyboard->setKeyCornerRadius(0);
-
-			keyboard->setHorizontalKeyGap(1);
-			keyboard->setVerticalKeyGap(1);
-
-			keyboard->setDefaultKeyBackgroundColor(&bg3);
-			keyboard->setDefaultKeyTextColor(&fg1);
-
-			keyboard->setActionKeyBackgroundColor(&bg2);
-			keyboard->setActionKeyTextColor(&fg1);
-
-			keyboard->setDisabledKeyBackgroundColor(&bg2);
-			keyboard->setDisabledKeyTextColor(&fg6);
-
-			keyboard->setNumericLayoutBuilder([] {
-				return new NumericKeyboardLayout();
-			});
-
-			keyboard->setCharactersLayoutBuilder([] {
-				return new CharactersKeyboardLayout();
-			});
-
-			keyboard->setCyclicLayoutBuilders({
-				[] {
-					return new EnglishKeyboardLayout();
-				},
-				[] {
-					return new RussianKeyboardLayout();
-				}
-			});
-		});
 	}
 
 	void Theme::setColorScheme(const bool dark) {
@@ -289,6 +253,43 @@ namespace pizda {
 		scrollView->setScrollBarThumbColor(&bg3);
 	}
 
+	void Theme::apply(Keyboard* keyboard) {
+		keyboard->setFont(&fontNormal);
+		keyboard->setBackgroundColor(&bg1);
+
+		keyboard->setKeyHeight(24);
+		keyboard->setKeyCornerRadius(0);
+
+		keyboard->setHorizontalKeyGap(1);
+		keyboard->setVerticalKeyGap(1);
+
+		keyboard->setDefaultKeyBackgroundColor(&bg3);
+		keyboard->setDefaultKeyTextColor(&fg1);
+
+		keyboard->setActionKeyBackgroundColor(&bg2);
+		keyboard->setActionKeyTextColor(&fg1);
+
+		keyboard->setDisabledKeyBackgroundColor(&bg2);
+		keyboard->setDisabledKeyTextColor(&fg6);
+
+		keyboard->setNumericLayoutBuilder([] {
+			return new NumericKeyboardLayout();
+		});
+
+		keyboard->setCharactersLayoutBuilder([] {
+			return new CharactersKeyboardLayout();
+		});
+
+		keyboard->setCyclicLayoutBuilders({
+			[] {
+				return new EnglishKeyboardLayout();
+			},
+			[] {
+				return new RussianKeyboardLayout();
+			}
+		});
+	}
+
 	void Theme::apply(TextField* textField) {
 		textField->setHeight(elementHeight);
 		textField->setCornerRadius(cornerRadius);
@@ -307,6 +308,40 @@ namespace pizda {
 		textField->setCursorColor(&accent1);
 
 		textField->setFont(&fontNormal);
+
+		textField->setOnInputStateChanged([textField] {
+			// Creating new keyboard overlay if none
+			if (!keyboardOverlay) {
+				// Creating keyboard overlay
+				keyboardOverlay = new KeyboardOverlay();
+
+				// Applying default keyboard style
+				apply(keyboardOverlay->getKeyboard());
+
+				// When overlay is being hidden
+				keyboardOverlay->setOnIsShownChanged([] {
+					if (keyboardOverlay->isShown())
+						return;
+
+					// Removing focus from any text field
+					Application::getCurrent()->setFocusedElement(nullptr);
+
+					// Deleting overlay
+					Application::getCurrent()->invokeLater([] {
+						delete keyboardOverlay;
+						keyboardOverlay = nullptr;
+					});
+				});
+
+				// Showing keyboard overlay
+				keyboardOverlay->show();
+			}
+
+			// Selecting desired keyboard layout
+			keyboardOverlay->getKeyboard()->setLayoutFromTextParsingOptions(textField->getTextParsingOptions());
+
+			textField->scrollIntoView();
+		});
 	}
 
 	void Theme::apply(Divider* divider) {
