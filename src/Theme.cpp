@@ -272,21 +272,30 @@ namespace pizda {
 		keyboard->setDisabledKeyBackgroundColor(&bg2);
 		keyboard->setDisabledKeyTextColor(&fg6);
 
-		keyboard->setNumericLayoutBuilder([] {
+		// Assigning layout getters. On desktop, it doesn't really matter, but for MCUs
+		// it would be wise to allocate them on stack and reuse instead of heap jerking
+		keyboard->setNumericLayoutGetter([] {
 			return new NumericKeyboardLayout();
 		});
 
-		keyboard->setCharactersLayoutBuilder([] {
+		keyboard->setCharactersLayoutGetter([] {
 			return new CharactersKeyboardLayout();
 		});
 
-		keyboard->setCyclicLayoutBuilders({
+		static std::array<std::function<KeyboardLayout*()>, 2> cyclicLayouts {
 			[] {
 				return new EnglishKeyboardLayout();
 			},
 			[] {
 				return new RussianKeyboardLayout();
 			}
+		};
+
+		keyboard->setCyclicLayoutsGetter(cyclicLayouts);
+
+		// Deleting previous keyboard layout when it's changed
+		keyboard->setOnLayoutChanged([](const KeyboardLayout* previousLayout, const KeyboardLayout*) {
+			delete previousLayout;
 		});
 	}
 
