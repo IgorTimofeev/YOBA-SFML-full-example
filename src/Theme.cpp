@@ -319,37 +319,39 @@ namespace pizda {
 		textField->setFont(&fontNormal);
 
 		textField->setOnInputStateChanged([textField] {
-			// Creating new keyboard overlay if none
-			if (!keyboardOverlay) {
-				// Creating keyboard overlay
-				keyboardOverlay = new KeyboardOverlay();
+			// Input started
+			if (textField->getInputState()) {
+				// Creating new keyboard overlay if none
+				if (!keyboardOverlay) {
+					// Creating keyboard overlay
+					keyboardOverlay = new KeyboardOverlay();
 
-				// Applying default keyboard style
-				apply(keyboardOverlay->getKeyboard());
+					// Applying default keyboard style
+					apply(keyboardOverlay->getKeyboard());
 
-				// When overlay is being hidden
-				keyboardOverlay->setOnIsShownChanged([] {
-					if (keyboardOverlay->isShown())
-						return;
+					// Showing keyboard overlay
+					keyboardOverlay->show();
+				}
 
-					// Removing focus from any text field
-					Application::getCurrent()->setFocusedElement(nullptr);
+				// Selecting desired keyboard layout
+				keyboardOverlay->getKeyboard()->setLayoutFromTextParsingOptions(textField->getTextParsingOptions());
 
-					// Deleting overlay
-					Application::getCurrent()->invokeLater([] {
-						delete keyboardOverlay;
-						keyboardOverlay = nullptr;
-					});
-				});
-
-				// Showing keyboard overlay
-				keyboardOverlay->show();
+				textField->scrollIntoView();
 			}
+			// Input finished
+			else {
+				if (!keyboardOverlay)
+					return;
 
-			// Selecting desired keyboard layout
-			keyboardOverlay->getKeyboard()->setLayoutFromTextParsingOptions(textField->getTextParsingOptions());
+				// Hiding keyboard overlay
+				keyboardOverlay->hide();
 
-			textField->scrollIntoView();
+				// Deleting keyboard overlay
+				Application::getCurrent()->invokeLater([] {
+					delete keyboardOverlay;
+					keyboardOverlay = nullptr;
+				});
+			}
 		});
 	}
 
